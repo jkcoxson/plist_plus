@@ -6,7 +6,7 @@ use rand::Rng;
 
 mod unsafe_bindings;
 mod debug;
-mod boolean;
+mod types;
 
 pub struct Plist {
     pub(crate) plist_t: unsafe_bindings::plist_t,
@@ -85,10 +85,7 @@ impl Plist {
         };
         unsafe { unsafe_bindings::plist_new_string(string.as_ptr() as *const i8) }.into()
     }
-    pub fn new_uint(uint: u64) -> Plist {
-        debug!("Generating new uint plist");
-        unsafe { unsafe_bindings::plist_new_uint(uint) }.into()
-    }
+    
     pub fn new_real(real: f64) -> Plist {
         debug!("Generating new float plist");
         unsafe { unsafe_bindings::plist_new_real(real) }.into()
@@ -314,18 +311,6 @@ impl Plist {
     pub fn get_string_ptr(&self) -> *const i8 {
         unsafe { unsafe_bindings::plist_get_string_ptr(self.plist_t, std::ptr::null_mut()) }
     }
-    
-    pub fn get_uint_val(&self) -> Result<u64, ()> {
-        if self.plist_type != PlistType::Integer {
-            return Err(());
-        }
-        let val = unsafe { std::mem::zeroed() };
-        debug!("Getting uint value");
-        Ok(unsafe {
-            unsafe_bindings::plist_get_uint_val(self.plist_t, val);
-            *val
-        })
-    }
     pub fn get_real_val(&self) -> Result<f64, ()> {
         let val = unsafe { std::mem::zeroed() };
         debug!("Getting float value");
@@ -368,10 +353,7 @@ impl Plist {
         debug!("Setting string value");
         unsafe { unsafe_bindings::plist_set_string_val(self.plist_t, val.as_ptr() as *const i8) }
     }
-    pub fn set_uint_val(&self, val: u64) {
-        debug!("Setting uint value");
-        unsafe { unsafe_bindings::plist_set_uint_val(self.plist_t, val) }
-    }
+    
     pub fn set_real_val(&self, val: f64) {
         debug!("Setting float value");
         unsafe { unsafe_bindings::plist_set_real_val(self.plist_t, val) }
@@ -455,13 +437,6 @@ impl From<unsafe_bindings::plist_t> for Plist {
     }
 }
 
-
-
-impl From<Plist> for u64 {
-    fn from(plist: Plist) -> Self {
-        plist.get_uint_val().expect("Expected integer type")
-    }
-}
 
 impl From<Plist> for f64 {
     fn from(plist: Plist) -> Self {
