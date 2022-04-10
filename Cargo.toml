@@ -14,12 +14,12 @@ documentation = "https://docs.rs/plist_plus"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libc = "*"
-rand = "*"
+libc = "0.2.122"
+rand = "0.8.5"
 
 [build-dependencies]
-bindgen = "*"
-cc  = "*"
+bindgen = "0.59.2"
+cc  = "1.0.73"
 
 [features]
 pls-generate = []
