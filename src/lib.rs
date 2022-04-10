@@ -1,13 +1,14 @@
 #[doc = include_str!("../README.md")]
-
 use rand::Rng;
 use std::{ffi::CString, fmt::Formatter};
 
 mod debug;
+mod iterator;
 mod types;
 mod unsafe_bindings;
-mod iterator;
 
+/// The main struct for the plist library
+/// This struct contains a pointer to the C compatible structure
 pub struct Plist {
     pub(crate) plist_t: unsafe_bindings::plist_t,
     pub plist_type: PlistType,
@@ -18,6 +19,7 @@ pub struct Plist {
 unsafe impl Send for Plist {}
 unsafe impl Sync for Plist {}
 
+/// The type of a given plist
 #[derive(PartialEq, Debug)]
 pub enum PlistType {
     Boolean,
@@ -35,9 +37,12 @@ pub enum PlistType {
 }
 
 impl Plist {
+    /// Returns a pointer to the underlying C compatible structure
+    /// This is compatible with libraries such as libimobiledevice
     pub fn get_pointer(&self) -> *mut std::ffi::c_void {
         self.plist_t as *mut std::ffi::c_void
     }
+    /// This takes a string in the form of XML and returns a Plist struct
     pub fn from_xml(xml: String) -> Result<Plist, ()> {
         let xml = match CString::new(xml) {
             Ok(s) => s,
@@ -54,14 +59,19 @@ impl Plist {
         };
         Ok(plist_t.into())
     }
-    pub fn get_parent(&self) -> Plist {
+    /// This will back the plist to the plist it came from
+    /// This is unsafe due to how the underlying C library works
+    /// It will return a second copy of the plist, and should be false dropped if used
+    pub unsafe fn get_parent(self) -> Plist {
         debug!("Getting parent");
-        unsafe { unsafe_bindings::plist_get_parent(self.plist_t) }.into()
+        unsafe_bindings::plist_get_parent(self.plist_t).into()
     }
+    /// Gets the type of the plist from the C library
     pub fn get_node_type(&self) -> PlistType {
         debug!("Getting node type");
         unsafe { unsafe_bindings::plist_get_node_type(self.plist_t) }.into() // puts on sunglasses
     }
+    /// Queries if the plist has a binary structure
     pub fn is_binary(&self) -> bool {
         let plist_data = unsafe { std::mem::zeroed() };
         let plist_len = unsafe { std::mem::zeroed() };
@@ -77,6 +87,7 @@ impl Plist {
             _ => true,
         }
     }
+    /// Traverses a list of plists
     /// Reimplimented from the C function because function overloading is evil
     pub fn access_path(self, plists: Vec<String>) -> Result<Plist, ()> {
         let mut current = self;
@@ -101,9 +112,10 @@ impl Plist {
             }
             i += 1;
         }
-        Ok(current.plist_t.into()) // Probably really stupid
+        Ok(current.plist_t.into())
     }
 
+    /// Disposes of the Rust structure without calling the destructor of the C structure
     /// This is necessary when a function absorbs another plist.
     /// That way, the rest of the plist struct is dropped, but the data at the pointer is not.
     /// This prevents many segfaults, but may cause unknown memory leaks.
@@ -114,6 +126,7 @@ impl Plist {
         self.plist_t = replacement;
     }
 
+    /// Compares two structs and determines if they are equal
     pub fn compare_node_values(node_l: Plist, node_r: Plist) -> bool {
         debug!("Comparing node values");
         match unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
