@@ -9,8 +9,13 @@ pub struct PlistIterator {
     plist: Plist,
 }
 
+pub struct PlistItem {
+    pub plist: Plist,
+    pub key: Option<String>,
+}
+
 impl IntoIterator for Plist {
-    type Item = Plist;
+    type Item = PlistItem;
     type IntoIter = PlistIterator;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -33,7 +38,7 @@ impl IntoIterator for Plist {
 }
 
 impl Iterator for PlistIterator {
-    type Item = Plist;
+    type Item = PlistItem;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.plist.plist_type {
@@ -52,7 +57,10 @@ impl Iterator for PlistIterator {
                     None
                 } else {
                     debug!("Getting type of next item in array");
-                    Some(unsafe { *to_fill }.into())
+                    Some(PlistItem {
+                        plist: unsafe { *to_fill }.into(),
+                        key: None,
+                    })
                 }
             }
             PlistType::Dictionary => {
@@ -71,10 +79,13 @@ impl Iterator for PlistIterator {
                     debug!("No more items in dictionary");
                     None
                 } else {
-                    let _key_str =
+                    let key_str =
                         unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
                     debug!("Getting type of next item in dictionary");
-                    Some(to_fill.into()) // yeet
+                    Some(PlistItem {
+                        plist: to_fill.into(),
+                        key: Some(key_str),
+                    })
                 }
             }
             _ => panic!("Cannot iterate over non-array or non-dictionary plist"),
