@@ -2,6 +2,14 @@
 name = "plist_plus"
 version = "0.1.0"
 edition = "2021"
+authors = [ "Jackson Coxson" ]
+description = "A library for reading and writing plists, compatible with libimobiledevice"
+homepage = "https://github.com/jkcoxson/plist_plus"
+repository = "https://github.com/jkcoxson/plist_plus"
+license = "LGPL-2.1 License"
+keywords = [ "plist", "plist_plus", "libimobiledevice", "libplist", "libplist_plus" ]
+readme = "README.md"
+documentation = "https://docs.rs/plist_plus"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
