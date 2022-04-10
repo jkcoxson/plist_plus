@@ -1,12 +1,11 @@
+use rand::Rng;
+#[doc = include_str!("../README.md")]
 use std::{ffi::CString, fmt::Formatter};
 
-use rand::Rng;
-
-#[doc = include_str!("../README.md")]
-
-mod unsafe_bindings;
 mod debug;
 mod types;
+mod unsafe_bindings;
+mod iterator;
 
 pub struct Plist {
     pub(crate) plist_t: unsafe_bindings::plist_t,
@@ -142,6 +141,17 @@ impl Plist {
         let replacement = unsafe { unsafe_bindings::plist_new_bool(0) };
         self.plist_t = replacement;
     }
+
+    pub fn compare_node_values(node_l: Plist, node_r: Plist) -> bool {
+        debug!("Comparing node values");
+        match unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
+            .to_string()
+            .as_str()
+        {
+            "TRUE" => true,
+            _ => false,
+        }
+    }
 }
 
 impl From<unsafe_bindings::plist_t> for Plist {
@@ -214,14 +224,31 @@ impl From<Plist> for Vec<u8> {
     }
 }
 
-
-
 impl Clone for Plist {
     fn clone(&self) -> Self {
         debug!("Cloning plist");
         let plist_t = unsafe { unsafe_bindings::plist_copy(self.plist_t) };
         debug!("Getting type of cloned plist");
         plist_t.into()
+    }
+}
+
+impl Clone for PlistType {
+    fn clone(&self) -> Self {
+        match self {
+            PlistType::Array => PlistType::Array,
+            PlistType::Boolean => PlistType::Boolean,
+            PlistType::Data => PlistType::Data,
+            PlistType::Date => PlistType::Date,
+            PlistType::Dictionary => PlistType::Dictionary,
+            PlistType::Integer => PlistType::Integer,
+            PlistType::Real => PlistType::Real,
+            PlistType::String => PlistType::String,
+            PlistType::Uid => PlistType::Uid,
+            PlistType::Unknown => PlistType::Unknown,
+            PlistType::Key => PlistType::Key,
+            PlistType::None => PlistType::None,
+        }
     }
 }
 
@@ -330,16 +357,5 @@ impl From<u32> for PlistType {
             10 => PlistType::None,
             _ => PlistType::Unknown,
         }
-    }
-}
-
-pub fn compare_node_values(node_l: Plist, node_r: Plist) -> bool {
-    debug!("Comparing node values");
-    match unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
-        .to_string()
-        .as_str()
-    {
-        "TRUE" => true,
-        _ => false,
     }
 }
