@@ -1,2 +1,9 @@
+pub mod array;
 pub mod boolean;
+pub mod data;
+pub mod date;
+pub mod dictionary;
 pub mod integer;
+pub mod key;
+pub mod real;
+pub mod string;
