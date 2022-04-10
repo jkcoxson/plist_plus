@@ -1,5 +1,6 @@
-use rand::Rng;
 #[doc = include_str!("../README.md")]
+
+use rand::Rng;
 use std::{ffi::CString, fmt::Formatter};
 
 mod debug;
@@ -17,19 +18,6 @@ pub struct Plist {
 unsafe impl Send for Plist {}
 unsafe impl Sync for Plist {}
 
-pub struct PlistArrayIter {
-    plist_array_iter: unsafe_bindings::plist_array_iter,
-    plist: Plist,
-}
-
-unsafe impl Send for PlistDictIter {}
-unsafe impl Sync for PlistDictIter {}
-
-pub struct PlistDictIter {
-    plist_dict_iter: unsafe_bindings::plist_dict_iter,
-    plist: Plist,
-}
-
 #[derive(PartialEq, Debug)]
 pub enum PlistType {
     Boolean,
@@ -46,26 +34,10 @@ pub enum PlistType {
     None,
 }
 
-impl From<PlistType> for String {
-    fn from(plist_type: PlistType) -> String {
-        match plist_type {
-            PlistType::Boolean => "Boolean".to_string(),
-            PlistType::Integer => "Integer".to_string(),
-            PlistType::Real => "Real".to_string(),
-            PlistType::Date => "Date".to_string(),
-            PlistType::Data => "Data".to_string(),
-            PlistType::String => "String".to_string(),
-            PlistType::Array => "Array".to_string(),
-            PlistType::Dictionary => "Dictionary".to_string(),
-            PlistType::Unknown => "Unknown".to_string(),
-            PlistType::Key => "Key".to_string(),
-            PlistType::Uid => "Uid".to_string(),
-            PlistType::None => "None".to_string(),
-        }
-    }
-}
-
 impl Plist {
+    pub fn get_pointer(&self) -> *mut std::ffi::c_void {
+        self.plist_t as *mut std::ffi::c_void
+    }
     pub fn from_xml(xml: String) -> Result<Plist, ()> {
         let xml = match CString::new(xml) {
             Ok(s) => s,
@@ -272,75 +244,6 @@ impl Drop for Plist {
     }
 }
 
-impl PlistArrayIter {
-    pub fn next_item(&mut self) -> Option<Plist> {
-        let to_fill = unsafe { std::mem::zeroed() };
-        debug!("Getting next item in array");
-        unsafe {
-            unsafe_bindings::plist_array_next_item(
-                self.plist.plist_t,
-                self.plist_array_iter,
-                to_fill,
-            )
-        };
-        if to_fill.is_null() {
-            debug!("No more items in array");
-            None
-        } else {
-            debug!("Getting type of next item in array");
-            Some(unsafe { *to_fill }.into())
-        }
-    }
-}
-
-impl From<Plist> for PlistArrayIter {
-    fn from(plist: Plist) -> Self {
-        let mut plist_array_iter = unsafe { std::mem::zeroed() };
-        debug!("Getting iterator for array");
-        unsafe { unsafe_bindings::plist_array_new_iter(plist.plist_t, &mut plist_array_iter) };
-        PlistArrayIter {
-            plist_array_iter,
-            plist,
-        }
-    }
-}
-
-impl PlistDictIter {
-    pub fn next_item(&mut self) -> Option<(String, Plist)> {
-        let mut key = unsafe { std::mem::zeroed() };
-        let mut to_fill = unsafe { std::mem::zeroed() };
-        debug!("Getting next item in dictionary");
-        unsafe {
-            unsafe_bindings::plist_dict_next_item(
-                self.plist.plist_t,
-                self.plist_dict_iter,
-                &mut key,
-                &mut to_fill,
-            )
-        };
-        if to_fill.is_null() {
-            debug!("No more items in dictionary");
-            None
-        } else {
-            let key_str = unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
-            debug!("Getting type of next item in dictionary");
-            Some((key_str, to_fill.into())) // yeet
-        }
-    }
-}
-
-impl From<Plist> for PlistDictIter {
-    fn from(plist: Plist) -> Self {
-        let mut plist_dict_iter = unsafe { std::mem::zeroed() };
-        debug!("Getting iterator for dictionary");
-        unsafe { unsafe_bindings::plist_dict_new_iter(plist.plist_t, &mut plist_dict_iter) };
-        PlistDictIter {
-            plist_dict_iter,
-            plist,
-        }
-    }
-}
-
 impl From<u32> for PlistType {
     fn from(i: u32) -> Self {
         match i {
@@ -356,6 +259,25 @@ impl From<u32> for PlistType {
             9 => PlistType::Uid,
             10 => PlistType::None,
             _ => PlistType::Unknown,
+        }
+    }
+}
+
+impl From<PlistType> for String {
+    fn from(plist_type: PlistType) -> String {
+        match plist_type {
+            PlistType::Boolean => "Boolean".to_string(),
+            PlistType::Integer => "Integer".to_string(),
+            PlistType::Real => "Real".to_string(),
+            PlistType::Date => "Date".to_string(),
+            PlistType::Data => "Data".to_string(),
+            PlistType::String => "String".to_string(),
+            PlistType::Array => "Array".to_string(),
+            PlistType::Dictionary => "Dictionary".to_string(),
+            PlistType::Unknown => "Unknown".to_string(),
+            PlistType::Key => "Key".to_string(),
+            PlistType::Uid => "Uid".to_string(),
+            PlistType::None => "None".to_string(),
         }
     }
 }
