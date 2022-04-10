@@ -2,9 +2,10 @@
 
 use std::time::SystemTime;
 
-use crate::{Plist};
+use crate::Plist;
 
 impl Plist {
+    /// Unimplemented
     pub fn new_date(_date: SystemTime) -> Plist {
         unimplemented!() // I am too tired to implement this right now
                          // Turns out I'm too tired to impliment this ever
@@ -12,7 +13,7 @@ impl Plist {
     pub fn get_date_val(&self) {
         unimplemented!();
     }
-        pub fn set_date_val(&self) {
+    pub fn set_date_val(&self) {
         unimplemented!();
     }
 }

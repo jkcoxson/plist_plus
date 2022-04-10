@@ -2,13 +2,16 @@
 
 use std::ffi::CString;
 
-use crate::{debug, Plist, PlistType, unsafe_bindings};
+use crate::{debug, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
+    /// Returns a plist with type dictionary
+    /// This plist is empty
     pub fn new_dict() -> Plist {
         debug!("Generating new dictionary plist");
         unsafe { unsafe_bindings::plist_new_dict() }.into()
     }
+    /// Returns the number of items contained in the plist dictionary
     pub fn dict_get_size(&self) -> Result<u32, ()> {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
@@ -16,6 +19,7 @@ impl Plist {
         debug!("Getting dict size");
         Ok(unsafe { unsafe_bindings::plist_dict_get_size(self.plist_t) })
     }
+    /// Get the key associated with the item
     pub fn dict_get_item_key(&self) -> Result<String, ()> {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
@@ -27,6 +31,7 @@ impl Plist {
         let key = unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
         Ok(key)
     }
+    /// Get the item associated with the key
     pub fn dict_get_item(&self, key: &str) -> Result<Plist, ()> {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
@@ -38,10 +43,8 @@ impl Plist {
                 .into(),
         )
     }
+    /// Get the key associated with self within a dictionary
     pub fn dict_item_get_key(&self) -> Result<Plist, ()> {
-        if self.plist_type != PlistType::Dictionary {
-            return Err(());
-        }
         debug!("Getting dict item key");
         Ok(unsafe { unsafe_bindings::plist_dict_item_get_key(self.plist_t) }.into())
     }
@@ -56,6 +59,8 @@ impl Plist {
         item.false_drop();
         Ok(())
     }
+    /// Inserts a new item into the dictionary
+    /// The item must also be a plist
     pub fn dict_insert_item(&mut self, key: &str, item: Plist) -> Result<(), ()> {
         let key = CString::new(key).unwrap();
         if self.plist_type != PlistType::Dictionary {
@@ -73,6 +78,7 @@ impl Plist {
         item.false_drop();
         Ok(())
     }
+    /// Removes an item from the dictionary with a given key
     pub fn dict_remove_item(&self, key: &str) -> Result<(), ()> {
         let key = CString::new(key).unwrap();
         if self.plist_type != PlistType::Dictionary {
@@ -82,6 +88,7 @@ impl Plist {
         unsafe { unsafe_bindings::plist_dict_remove_item(self.plist_t, key.as_ptr() as *const i8) }
         Ok(())
     }
+    /// Merges a dictionary into the current dictionary
     pub fn dict_merge(&mut self, dict: Plist) -> Result<(), ()> {
         if self.plist_type != PlistType::Dictionary {
             return Err(());

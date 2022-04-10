@@ -2,9 +2,11 @@
 
 use std::ffi::CString;
 
-use crate::{debug, Plist, PlistType, unsafe_bindings};
+use crate::{debug, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
+    /// Gets the key plist value
+    /// Current uses of this are unknown
     pub fn get_key_val(&self) -> Result<String, ()> {
         if self.plist_type != PlistType::Key {
             return Err(());
@@ -17,6 +19,8 @@ impl Plist {
         Ok(key)
     }
 
+    /// Sets the key plist value
+    /// Current uses of this are unknown
     pub fn set_key_val(&self, key: &str) {
         let key = CString::new(key).unwrap();
         debug!("Setting key value");

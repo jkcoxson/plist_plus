@@ -1,11 +1,12 @@
 // jkcoxson
 
-use crate::Plist;
-use crate::PlistType;
 use crate::debug;
 use crate::unsafe_bindings;
+use crate::Plist;
+use crate::PlistType;
 
 impl Plist {
+    /// Returns a plist with bool type
     pub fn new_bool(bool: bool) -> Plist {
         debug!("Generating new bool plist");
         unsafe {
@@ -16,7 +17,7 @@ impl Plist {
         }
         .into()
     }
-
+    /// Returns the value of the bool
     pub fn get_bool_val(&self) -> Result<bool, ()> {
         if self.plist_type != PlistType::Boolean {
             return Err(());
@@ -31,7 +32,7 @@ impl Plist {
             }
         })
     }
-
+    /// Sets a plist to type bool with the given value
     pub fn set_bool_val(&self, val: bool) {
         let val = if val { 1 } else { 0 };
         debug!("Setting bool value");

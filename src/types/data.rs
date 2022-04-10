@@ -1,8 +1,10 @@
 // jkcoxson
 
-use crate::{debug, Plist, PlistType, unsafe_bindings};
+use crate::{debug, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
+    /// Returns a new plist with a type of data
+    /// The data type is equivalent to a collection of bytes
     pub fn new_data(data: &[u8]) -> Plist {
         debug!("Generating new data plist");
         unsafe {
@@ -13,6 +15,7 @@ impl Plist {
         }
         .into()
     }
+    /// Returns the data value contained in a plist
     pub fn get_data_val(&self) -> Result<Vec<i8>, ()> {
         if self.plist_type != PlistType::Data {
             return Err(());
@@ -26,6 +29,7 @@ impl Plist {
         let val = unsafe { std::slice::from_raw_parts(val, size as usize) };
         Ok(val.to_vec())
     }
+    /// Sets the contents of a plist to the given data
     pub fn set_data_val(&self, val: &[i8]) -> Result<(), ()> {
         if self.plist_type != PlistType::Data {
             debug!("Cannot set value of non-data plist");
