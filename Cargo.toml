@@ -19,7 +19,7 @@ rand = "0.8.5"
 
 [build-dependencies]
 bindgen = "0.59.2"
-cc  = "1.0.73"
+cc = "1.0.73"
 
 [features]
 pls-generate = []
