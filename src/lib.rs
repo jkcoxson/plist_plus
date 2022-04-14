@@ -1,6 +1,6 @@
 #[doc = include_str!("../README.md")]
 use rand::Rng;
-use std::{ffi::CString, fmt::Formatter};
+use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
 
 mod debug;
 mod iterator;
@@ -57,6 +57,35 @@ impl Plist {
         unsafe {
             unsafe_bindings::plist_from_xml(xml.as_ptr() as *const i8, xml_len, &mut plist_t)
         };
+        Ok(plist_t.into())
+    }
+    /// This takes a string in the form of binary and returns a Plist struct
+    pub fn from_bin(bin: Vec<u8>) -> Result<Plist, ()> {
+        let mut plist_t = unsafe { std::mem::zeroed() };
+        let result = unsafe {
+            unsafe_bindings::plist_from_bin(
+                bin.as_ptr() as *const c_char,
+                bin.len() as u32,
+                &mut plist_t,
+            )
+        };
+        if result != 0 {
+            return Err(());
+        }
+        Ok(plist_t.into())
+    }
+    pub fn from_memory(bin: Vec<u8>) -> Result<Plist, ()> {
+        let mut plist_t = unsafe { std::mem::zeroed() };
+        let result = unsafe {
+            unsafe_bindings::plist_from_memory(
+                bin.as_ptr() as *const c_char,
+                bin.len() as u32,
+                &mut plist_t,
+            )
+        };
+        if result != 0 {
+            return Err(());
+        }
         Ok(plist_t.into())
     }
     /// This will back the plist to the plist it came from
@@ -174,12 +203,11 @@ impl From<Plist> for String {
 
 impl ToString for Plist {
     fn to_string(&self) -> String {
-        let plist_t = self.plist_t;
         let mut plist_data = std::ptr::null_mut();
         let mut plist_size = 0;
         debug!("Converting plist to XML data");
         unsafe {
-            unsafe_bindings::plist_to_xml(plist_t, &mut plist_data, &mut plist_size);
+            unsafe_bindings::plist_to_xml(self.plist_t, &mut plist_data, &mut plist_size);
         }
         debug!("Assembling XML data");
         let plist_data = unsafe {

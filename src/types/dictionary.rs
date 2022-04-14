@@ -38,10 +38,10 @@ impl Plist {
         }
         let key_c_string = CString::new(key).unwrap();
         debug!("Getting dict item");
-        Ok(
+        let item: Plist =
             unsafe { unsafe_bindings::plist_dict_get_item(self.plist_t, key_c_string.as_ptr()) }
-                .into(),
-        )
+                .into();
+        Ok(item.clone())
     }
     /// Get the key associated with self within a dictionary
     pub fn dict_item_get_key(&self) -> Result<Plist, ()> {

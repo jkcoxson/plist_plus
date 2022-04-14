@@ -4,7 +4,10 @@
 #[macro_export]
 macro_rules! debug {
     ($($arg : tt) *) => {
-        println!("{}:{} -- {}", file!().split('/').last().unwrap(), line!(), format!($($arg)*))
+        // If the debug environment variable is set, print the message
+        if std::env::var("PLIST_DEBUG").is_ok() {
+            println!("{}:{} -- {}", file!().split('/').last().unwrap(), line!(), format!($($arg)*))
+        }
     };
 }
 
