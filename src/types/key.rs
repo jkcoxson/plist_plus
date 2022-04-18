@@ -1,6 +1,6 @@
 // jkcoxson
 
-use std::ffi::CString;
+use std::{ffi::CString, os::raw::c_char};
 
 use crate::{debug, unsafe_bindings, Plist, PlistType};
 
@@ -24,6 +24,6 @@ impl Plist {
     pub fn set_key_val(&self, key: &str) {
         let key = CString::new(key).unwrap();
         debug!("Setting key value");
-        unsafe { unsafe_bindings::plist_set_key_val(self.plist_t, key.as_ptr() as *const i8) }
+        unsafe { unsafe_bindings::plist_set_key_val(self.plist_t, key.as_ptr() as *const c_char) }
     }
 }

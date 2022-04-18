@@ -1,5 +1,7 @@
 // jkcoxson
 
+use std::os::raw::c_char;
+
 use crate::{debug, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
@@ -9,14 +11,14 @@ impl Plist {
         debug!("Generating new data plist");
         unsafe {
             unsafe_bindings::plist_new_data(
-                data.as_ptr() as *const i8,
+                data.as_ptr() as *const c_char,
                 std::convert::TryInto::try_into(data.len()).unwrap(),
             )
         }
         .into()
     }
     /// Returns the data value contained in a plist
-    pub fn get_data_val(&self) -> Result<Vec<i8>, ()> {
+    pub fn get_data_val(&self) -> Result<Vec<c_char>, ()> {
         if self.plist_type != PlistType::Data {
             return Err(());
         }
@@ -30,7 +32,7 @@ impl Plist {
         Ok(val.to_vec())
     }
     /// Sets the contents of a plist to the given data
-    pub fn set_data_val(&self, val: &[i8]) -> Result<(), ()> {
+    pub fn set_data_val(&self, val: &[c_char]) -> Result<(), ()> {
         if self.plist_type != PlistType::Data {
             debug!("Cannot set value of non-data plist");
             return Err(());

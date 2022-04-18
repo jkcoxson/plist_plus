@@ -1,6 +1,6 @@
 // jkcoxson
 
-use std::ffi::CString;
+use std::{ffi::CString, os::raw::c_char};
 
 use crate::{debug, unsafe_bindings, Plist, PlistType};
 
@@ -14,7 +14,7 @@ impl Plist {
                 panic!("Could not convert string to CString");
             }
         };
-        unsafe { unsafe_bindings::plist_new_string(string.as_ptr() as *const i8) }.into()
+        unsafe { unsafe_bindings::plist_new_string(string.as_ptr() as *const c_char) }.into()
     }
     /// Returns the value of the string
     pub fn get_string_val(&self) -> Result<String, ()> {
@@ -29,14 +29,16 @@ impl Plist {
         Ok(val)
     }
     /// Returns a C pointer to a CString containing the value of the string
-    pub unsafe fn get_string_ptr(&self) -> *const i8 {
+    pub unsafe fn get_string_ptr(&self) -> *const c_char {
         unsafe_bindings::plist_get_string_ptr(self.plist_t, std::ptr::null_mut())
     }
     /// Sets a plist to type string with the given value
     pub fn set_string_val(&self, val: &str) {
         let val = CString::new(val).unwrap();
         debug!("Setting string value");
-        unsafe { unsafe_bindings::plist_set_string_val(self.plist_t, val.as_ptr() as *const i8) }
+        unsafe {
+            unsafe_bindings::plist_set_string_val(self.plist_t, val.as_ptr() as *const c_char)
+        }
     }
 }
 

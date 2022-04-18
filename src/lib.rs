@@ -55,7 +55,7 @@ impl Plist {
         let mut plist_t = unsafe { std::mem::zeroed() };
         debug!("Parsing xml");
         unsafe {
-            unsafe_bindings::plist_from_xml(xml.as_ptr() as *const i8, xml_len, &mut plist_t)
+            unsafe_bindings::plist_from_xml(xml.as_ptr() as *const c_char, xml_len, &mut plist_t)
         };
         Ok(plist_t.into())
     }

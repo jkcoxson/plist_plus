@@ -1,6 +1,6 @@
 // jkcoxson
 
-use std::ffi::CString;
+use std::{ffi::CString, os::raw::c_char};
 
 use crate::{debug, unsafe_bindings, Plist, PlistType};
 
@@ -70,7 +70,7 @@ impl Plist {
         unsafe {
             unsafe_bindings::plist_dict_insert_item(
                 self.plist_t,
-                key.as_ptr() as *const i8,
+                key.as_ptr() as *const c_char,
                 item.plist_t,
             )
         }
@@ -85,7 +85,9 @@ impl Plist {
             return Err(());
         }
         debug!("Removing dict item");
-        unsafe { unsafe_bindings::plist_dict_remove_item(self.plist_t, key.as_ptr() as *const i8) }
+        unsafe {
+            unsafe_bindings::plist_dict_remove_item(self.plist_t, key.as_ptr() as *const c_char)
+        }
         Ok(())
     }
     /// Merges a dictionary into the current dictionary
