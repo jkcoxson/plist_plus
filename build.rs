@@ -45,6 +45,7 @@ fn main() {
     // Set literally every imaginable path as a search path gosh darn it
     println!("cargo:rustc-link-search=/usr/local/lib");
     println!("cargo:rustc-link-search=/usr/lib");
+    println!("cargo:rustc-link-search=/usr/lib64");
     println!("cargo:rustc-link-search=/opt/homebrew/lib");
     println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice/lib");
     println!("cargo:rustc-link-search=/usr/local/opt/libplist/lib");
