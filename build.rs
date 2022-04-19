@@ -40,14 +40,14 @@ fn main() {
             "cargo:rustc-link-search={}",
             canonicalize(&override_path).unwrap().display()
         );
+    } else {
+        // Set literally every imaginable path as a search path gosh darn it
+        println!("cargo:rustc-link-search=/usr/local/lib");
+        println!("cargo:rustc-link-search=/usr/lib");
+        println!("cargo:rustc-link-search=/opt/homebrew/lib");
+        println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice/lib");
+        println!("cargo:rustc-link-search=/usr/local/opt/libplist/lib");
     }
-
-    // Set literally every imaginable path as a search path gosh darn it
-    println!("cargo:rustc-link-search=/usr/local/lib");
-    println!("cargo:rustc-link-search=/usr/lib");
-    println!("cargo:rustc-link-search=/opt/homebrew/lib");
-    println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice/lib");
-    println!("cargo:rustc-link-search=/usr/local/opt/libplist/lib");
 
     let location_determinator;
     if cfg!(feature = "static") {
