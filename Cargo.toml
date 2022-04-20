@@ -16,6 +16,7 @@ documentation = "https://docs.rs/plist_plus"
 [dependencies]
 libc = "0.2.122"
 rand = "0.8.5"
+log = "0.4.*"
 
 [build-dependencies]
 bindgen = "0.59.2"

@@ -1,8 +1,9 @@
 // jkcoxson
 
 use libc::c_void;
+use log::info;
 
-use crate::{debug, unsafe_bindings, Plist, PlistType};
+use crate::{unsafe_bindings, Plist, PlistType};
 
 pub struct PlistIterator {
     iter_pointer: *mut c_void,
@@ -44,7 +45,7 @@ impl Iterator for PlistIterator {
         match self.plist.plist_type {
             PlistType::Array => {
                 let to_fill = unsafe { std::mem::zeroed() };
-                debug!("Getting next item in array");
+                info!("Getting next item in array");
                 unsafe {
                     unsafe_bindings::plist_array_next_item(
                         self.plist.plist_t,
@@ -53,10 +54,10 @@ impl Iterator for PlistIterator {
                     )
                 };
                 if to_fill.is_null() {
-                    debug!("No more items in array");
+                    info!("No more items in array");
                     None
                 } else {
-                    debug!("Getting type of next item in array");
+                    info!("Getting type of next item in array");
                     Some(PlistItem {
                         plist: unsafe { *to_fill }.into(),
                         key: None,
@@ -66,7 +67,7 @@ impl Iterator for PlistIterator {
             PlistType::Dictionary => {
                 let mut key = unsafe { std::mem::zeroed() };
                 let mut to_fill = unsafe { std::mem::zeroed() };
-                debug!("Getting next item in dictionary");
+                info!("Getting next item in dictionary");
                 unsafe {
                     unsafe_bindings::plist_dict_next_item(
                         self.plist.plist_t,
@@ -76,12 +77,12 @@ impl Iterator for PlistIterator {
                     )
                 };
                 if to_fill.is_null() {
-                    debug!("No more items in dictionary");
+                    info!("No more items in dictionary");
                     None
                 } else {
                     let key_str =
                         unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
-                    debug!("Getting type of next item in dictionary");
+                    info!("Getting type of next item in dictionary");
                     Some(PlistItem {
                         plist: to_fill.into(),
                         key: Some(key_str),

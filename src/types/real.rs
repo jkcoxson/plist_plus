@@ -1,11 +1,13 @@
 // jkcoxson
 
-use crate::{debug, unsafe_bindings, Plist, PlistType};
+use log::info;
+
+use crate::{unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Creates a new plist with type float
     pub fn new_real(real: f64) -> Plist {
-        debug!("Generating new float plist");
+        info!("Generating new float plist");
         unsafe { unsafe_bindings::plist_new_real(real) }.into()
     }
     /// Returns the value of the float
@@ -14,7 +16,7 @@ impl Plist {
             return Err(());
         }
         let val = unsafe { std::mem::zeroed() };
-        debug!("Getting float value");
+        info!("Getting float value");
         Ok(unsafe {
             unsafe_bindings::plist_get_real_val(self.plist_t, val);
             *val
@@ -22,7 +24,7 @@ impl Plist {
     }
     /// Sets a plist to type float with the given value
     pub fn set_real_val(&self, val: f64) -> Result<(), ()> {
-        debug!("Setting float value");
+        info!("Setting float value");
         unsafe { unsafe_bindings::plist_set_real_val(self.plist_t, val) }
         Ok(())
     }
