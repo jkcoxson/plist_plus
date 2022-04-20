@@ -49,17 +49,6 @@ fn main() {
         println!("cargo:rustc-link-search=/usr/local/opt/libplist/lib");
     }
 
-<<<<<<< HEAD
-=======
-    // Set literally every imaginable path as a search path gosh darn it
-    println!("cargo:rustc-link-search=/usr/local/lib");
-    println!("cargo:rustc-link-search=/usr/lib");
-    println!("cargo:rustc-link-search=/usr/lib64");
-    println!("cargo:rustc-link-search=/opt/homebrew/lib");
-    println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice/lib");
-    println!("cargo:rustc-link-search=/usr/local/opt/libplist/lib");
-
->>>>>>> c45554dc87b0589b607cb9f66e1c82bd0cb2ca14
     let location_determinator;
     if cfg!(feature = "static") {
         location_determinator = "static";
