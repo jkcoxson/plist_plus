@@ -84,7 +84,7 @@ fn main() {
         location_determinator = "dylib";
     }
 
-    println!("cargo:rustc-link-lib=static=plist-2.0");
+    println!("cargo:rustc-link-lib={}=plist-2.0", location_determinator);
 }
 
 fn repo_setup(url: &str) {

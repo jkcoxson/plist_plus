@@ -26,3 +26,6 @@ autotools = "0.2.5"
 pls-generate = []
 dynamic = []
 static = []
+vendored = [
+    "static"
+]
