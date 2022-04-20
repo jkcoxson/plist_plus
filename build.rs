@@ -57,7 +57,12 @@ fn main() {
             .without("cython", None)
             .build();
 
-        println!("cargo:rustc-link-search=native={}", dst.display());
+        println!(
+            "cargo:rustc-link-search=native={}",
+            dst.join("lib").display()
+        );
+
+        println!("cargo:rustc-link-lib=static=plist-2.0");
     } else {
         // Check if folder ./override exists
         let override_path = PathBuf::from("./override").join(env::var("TARGET").unwrap());
@@ -75,16 +80,6 @@ fn main() {
         println!("cargo:rustc-link-search=/usr/local/opt/libusbmuxd/lib");
         println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice-glue/lib");
     }
-    let location_determinator;
-    if cfg!(feature = "static") {
-        location_determinator = "static";
-    } else if cfg!(feature = "dynamic") {
-        location_determinator = "dylib";
-    } else {
-        location_determinator = "dylib";
-    }
-
-    println!("cargo:rustc-link-lib={}=plist-2.0", location_determinator);
 }
 
 fn repo_setup(url: &str) {
