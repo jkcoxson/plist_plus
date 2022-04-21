@@ -1,4 +1,4 @@
-use log::{info, warn};
+use log::{info, trace, warn};
 #[doc = include_str!("../README.md")]
 use rand::Rng;
 use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
@@ -239,7 +239,7 @@ impl From<Plist> for Vec<u8> {
 
 impl Clone for Plist {
     fn clone(&self) -> Self {
-        info!("Cloning plist");
+        trace!("Cloning plist");
         let plist_t = unsafe { unsafe_bindings::plist_copy(self.plist_t) };
         info!("Getting type of cloned plist");
         plist_t.into()

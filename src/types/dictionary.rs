@@ -43,7 +43,7 @@ impl Plist {
         let item: Plist =
             unsafe { unsafe_bindings::plist_dict_get_item(self.plist_t, key_c_string.as_ptr()) }
                 .into();
-        Ok(item.clone())
+        Ok(item)
     }
     /// Get the key associated with self within a dictionary
     pub fn dict_item_get_key(&self) -> Result<Plist, ()> {
