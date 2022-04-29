@@ -47,3 +47,9 @@ impl TryFrom<Plist> for bool {
         plist.get_bool_val()
     }
 }
+
+impl From<bool> for Plist {
+    fn from(val: bool) -> Self {
+        Plist::new_bool(val)
+    }
+}
