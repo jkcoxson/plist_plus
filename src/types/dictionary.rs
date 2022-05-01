@@ -27,7 +27,7 @@ impl Plist {
             return Err(());
         }
         let mut key = std::ptr::null_mut();
-        info!("Getting dict item key");
+        info!("Getting dict item key for {}", self.id);
         unsafe { unsafe_bindings::plist_dict_get_item_key(self.plist_t, &mut key) };
         info!("Converting key to string");
         let key = unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
@@ -39,7 +39,7 @@ impl Plist {
             return Err(());
         }
         let key_c_string = CString::new(key).unwrap();
-        info!("Getting dict item");
+        info!("Getting dict item for {}", self.id);
         let item: Plist =
             unsafe { unsafe_bindings::plist_dict_get_item(self.plist_t, key_c_string.as_ptr()) }
                 .into();
