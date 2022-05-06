@@ -2,7 +2,7 @@
 
 use std::{ffi::CString, os::raw::c_char};
 
-use log::info;
+use log::trace;
 
 use crate::{unsafe_bindings, Plist, PlistType};
 
@@ -10,7 +10,7 @@ impl Plist {
     /// Returns a plist with type dictionary
     /// This plist is empty
     pub fn new_dict() -> Plist {
-        info!("Generating new dictionary plist");
+        trace!("Generating new dictionary plist");
         unsafe { unsafe_bindings::plist_new_dict() }.into()
     }
     /// Returns the number of items contained in the plist dictionary
@@ -18,7 +18,7 @@ impl Plist {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
         }
-        info!("Getting dict size");
+        trace!("Getting dict size");
         Ok(unsafe { unsafe_bindings::plist_dict_get_size(self.plist_t) })
     }
     /// Get the key associated with the item
@@ -27,9 +27,9 @@ impl Plist {
             return Err(());
         }
         let mut key = std::ptr::null_mut();
-        info!("Getting dict item key for {}", self.id);
+        trace!("Getting dict item key for {}", self.id);
         unsafe { unsafe_bindings::plist_dict_get_item_key(self.plist_t, &mut key) };
-        info!("Converting key to string");
+        trace!("Converting key to string");
         let key = unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
         Ok(key)
     }
@@ -39,7 +39,7 @@ impl Plist {
             return Err(());
         }
         let key_c_string = CString::new(key).unwrap();
-        info!("Getting dict item for {}", self.id);
+        trace!("Getting dict item for {}", self.id);
         let item: Plist =
             unsafe { unsafe_bindings::plist_dict_get_item(self.plist_t, key_c_string.as_ptr()) }
                 .into();
@@ -47,7 +47,7 @@ impl Plist {
     }
     /// Get the key associated with self within a dictionary
     pub fn dict_item_get_key(&self) -> Result<Plist, ()> {
-        info!("Getting dict item key");
+        trace!("Getting dict item key");
         Ok(unsafe { unsafe_bindings::plist_dict_item_get_key(self.plist_t) }.into())
     }
     pub fn dict_set_item(&mut self, key: &str, item: Plist) -> Result<(), ()> {
@@ -55,7 +55,7 @@ impl Plist {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
         }
-        info!("Setting dict item");
+        trace!("Setting dict item");
         unsafe { unsafe_bindings::plist_dict_set_item(self.plist_t, key.as_ptr(), item.plist_t) }
         self.dependent_plists.push(item.plist_t);
         item.false_drop();
@@ -68,7 +68,7 @@ impl Plist {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
         }
-        info!("Inserting dict item");
+        trace!("Inserting dict item");
         unsafe {
             unsafe_bindings::plist_dict_insert_item(
                 self.plist_t,
@@ -86,7 +86,7 @@ impl Plist {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
         }
-        info!("Removing dict item");
+        trace!("Removing dict item");
         unsafe {
             unsafe_bindings::plist_dict_remove_item(self.plist_t, key.as_ptr() as *const c_char)
         }
@@ -97,7 +97,7 @@ impl Plist {
         if self.plist_type != PlistType::Dictionary {
             return Err(());
         }
-        info!("Merging dict");
+        trace!("Merging dict");
         unsafe { unsafe_bindings::plist_dict_merge(&mut self.plist_t, dict.plist_t) }
         self.dependent_plists.push(dict.plist_t);
         dict.false_drop();

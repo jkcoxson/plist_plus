@@ -1,4 +1,4 @@
-use log::{info, trace, warn};
+use log::{trace, warn};
 #[doc = include_str!("../README.md")]
 use rand::Rng;
 use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
@@ -53,7 +53,7 @@ impl Plist {
         };
         let xml_len = std::convert::TryInto::try_into(xml.as_bytes().len()).unwrap();
         let mut plist_t = unsafe { std::mem::zeroed() };
-        info!("Parsing xml");
+        trace!("Parsing xml");
         unsafe {
             unsafe_bindings::plist_from_xml(xml.as_ptr() as *const c_char, xml_len, &mut plist_t)
         };
@@ -92,23 +92,23 @@ impl Plist {
     /// This is unsafe due to how the underlying C library works
     /// It will return a second copy of the plist, and should be false dropped if used
     pub unsafe fn get_parent(self) -> Plist {
-        info!("Getting parent");
+        trace!("Getting parent");
         unsafe_bindings::plist_get_parent(self.plist_t).into()
     }
     /// Gets the type of the plist from the C library
     pub fn get_node_type(&self) -> PlistType {
-        info!("Getting node type");
+        trace!("Getting node type");
         unsafe { unsafe_bindings::plist_get_node_type(self.plist_t) }.into() // puts on sunglasses
     }
     /// Queries if the plist has a binary structure
     pub fn is_binary(&self) -> bool {
         let plist_data = unsafe { std::mem::zeroed() };
         let plist_len = unsafe { std::mem::zeroed() };
-        info!("Getting plist data");
+        trace!("Getting plist data");
         unsafe {
             unsafe_bindings::plist_get_data_val(self.plist_t, plist_data, plist_len);
         }
-        info!("Checking if plist is binary");
+        trace!("Checking if plist is binary");
         match unsafe {
             unsafe_bindings::plist_is_binary(*plist_data, (*plist_len).try_into().unwrap())
         } {
@@ -150,14 +150,14 @@ impl Plist {
     /// This prevents many segfaults, but may cause unknown memory leaks.
     /// Needs more research...
     pub fn false_drop(mut self) {
-        info!("False dropping {}", self.id);
+        trace!("False dropping {}", self.id);
         let replacement = unsafe { unsafe_bindings::plist_new_bool(0) };
         self.plist_t = replacement;
     }
 
     /// Compares two structs and determines if they are equal
     pub fn compare_node_values(node_l: Plist, node_r: Plist) -> bool {
-        info!("Comparing node values");
+        trace!("Comparing node values");
         match unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
             .to_string()
             .as_str()
@@ -172,7 +172,7 @@ impl From<unsafe_bindings::plist_t> for Plist {
     fn from(plist_t: unsafe_bindings::plist_t) -> Self {
         let mut rng = rand::thread_rng();
         let id = rng.gen::<u32>();
-        info!("Creating plist from plist_t with id {}", id);
+        trace!("Creating plist from plist_t with id {}", id);
         Plist {
             plist_t,
             plist_type: unsafe { unsafe_bindings::plist_get_node_type(plist_t) }.into(),
@@ -187,11 +187,11 @@ impl From<Plist> for String {
         let plist_t = plist.plist_t;
         let mut plist_data = std::ptr::null_mut();
         let mut plist_size = 0;
-        info!("Converting plist to XML data");
+        trace!("Converting plist to XML data");
         unsafe {
             unsafe_bindings::plist_to_xml(plist_t, &mut plist_data, &mut plist_size);
         }
-        info!("Assembling XML data");
+        trace!("Assembling XML data");
         let plist_data = unsafe {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
@@ -205,11 +205,11 @@ impl ToString for Plist {
     fn to_string(&self) -> String {
         let mut plist_data = std::ptr::null_mut();
         let mut plist_size = 0;
-        info!("Converting plist to XML data");
+        trace!("Converting plist to XML data");
         unsafe {
             unsafe_bindings::plist_to_xml(self.plist_t, &mut plist_data, &mut plist_size);
         }
-        info!("Assembling XML data");
+        trace!("Assembling XML data");
         let plist_data = unsafe {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
@@ -224,11 +224,11 @@ impl From<Plist> for Vec<u8> {
         let plist_t = plist.plist_t;
         let mut plist_data = std::ptr::null_mut();
         let mut plist_size = 0;
-        info!("Converting plist to binary data");
+        trace!("Converting plist to binary data");
         unsafe {
             unsafe_bindings::plist_to_bin(plist_t, &mut plist_data, &mut plist_size);
         }
-        info!("Assembling binary data");
+        trace!("Assembling binary data");
         let plist_data = unsafe {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
@@ -241,7 +241,7 @@ impl Clone for Plist {
     fn clone(&self) -> Self {
         trace!("Cloning plist");
         let plist_t = unsafe { unsafe_bindings::plist_copy(self.plist_t) };
-        info!("Getting type of cloned plist");
+        trace!("Getting type of cloned plist");
         plist_t.into()
     }
 }
@@ -274,14 +274,14 @@ impl std::fmt::Debug for Plist {
 
 impl Drop for Plist {
     fn drop(&mut self) {
-        info!("Dropping plist {}", self.id);
+        trace!("Dropping plist {}", self.id);
         // Dependent plists should be freed automatically because this object is being dropped, right?
         if self.plist_t as u8 == 0 {
             warn!("Plist has already been freed");
             return;
         }
         unsafe { unsafe_bindings::plist_free(self.plist_t) }
-        info!("Plist dropped");
+        trace!("Plist dropped");
     }
 }
 

@@ -2,14 +2,14 @@
 
 use std::{ffi::CString, os::raw::c_char};
 
-use log::info;
+use log::trace;
 
 use crate::{unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Creates a new plist with type string
     pub fn new_string(string: &str) -> Plist {
-        info!("Generating new string plist");
+        trace!("Generating new string plist");
         let string = match CString::new(string) {
             Ok(s) => s,
             Err(_) => {
@@ -24,9 +24,9 @@ impl Plist {
             return Err(());
         }
         let mut val = std::ptr::null_mut();
-        info!("Getting string value");
+        trace!("Getting string value");
         unsafe { unsafe_bindings::plist_get_string_val(self.plist_t, &mut val) };
-        info!("Converting cstring to string");
+        trace!("Converting cstring to string");
         let val = unsafe { std::ffi::CStr::from_ptr(val).to_string_lossy().into_owned() };
         Ok(val)
     }
@@ -37,7 +37,7 @@ impl Plist {
     /// Sets a plist to type string with the given value
     pub fn set_string_val(&self, val: &str) {
         let val = CString::new(val).unwrap();
-        info!("Setting string value");
+        trace!("Setting string value");
         unsafe {
             unsafe_bindings::plist_set_string_val(self.plist_t, val.as_ptr() as *const c_char)
         }

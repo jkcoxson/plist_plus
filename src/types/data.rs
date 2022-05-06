@@ -2,7 +2,7 @@
 
 use std::os::raw::c_char;
 
-use log::{info, warn};
+use log::{trace, warn};
 
 use crate::{unsafe_bindings, Plist, PlistType};
 
@@ -10,7 +10,7 @@ impl Plist {
     /// Returns a new plist with a type of data
     /// The data type is equivalent to a collection of bytes
     pub fn new_data(data: &[u8]) -> Plist {
-        info!("Generating new data plist");
+        trace!("Generating new data plist");
         unsafe {
             unsafe_bindings::plist_new_data(
                 data.as_ptr() as *const c_char,
@@ -26,7 +26,7 @@ impl Plist {
         }
         let mut val = std::ptr::null_mut();
         let mut size = 0;
-        info!("Getting data value");
+        trace!("Getting data value");
         unsafe {
             unsafe_bindings::plist_get_data_val(self.plist_t, &mut val, &mut size);
         }
@@ -39,7 +39,7 @@ impl Plist {
             warn!("Cannot set value of non-data plist");
             return Err(());
         }
-        info!("Setting data value");
+        trace!("Setting data value");
         unsafe { unsafe_bindings::plist_set_data_val(self.plist_t, val.as_ptr(), val.len() as u64) }
         Ok(())
     }

@@ -1,18 +1,18 @@
 // jkcoxson
 
-use log::info;
+use log::trace;
 
 use crate::{unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Creates a new plist with the type of an integer
     pub fn new_uint(uint: u64) -> Plist {
-        info!("Generating new uint plist");
+        trace!("Generating new uint plist");
         unsafe { unsafe_bindings::plist_new_uint(uint) }.into()
     }
     /// Sets the plist as type integer with the given value
     pub fn set_uint_val(&self, val: u64) {
-        info!("Setting uint value");
+        trace!("Setting uint value");
         unsafe { unsafe_bindings::plist_set_uint_val(self.plist_t, val) }
     }
     /// Returns the value of the integer
@@ -21,7 +21,7 @@ impl Plist {
             return Err(());
         }
         let val = unsafe { std::mem::zeroed() };
-        info!("Getting uint value");
+        trace!("Getting uint value");
         Ok(unsafe {
             unsafe_bindings::plist_get_uint_val(self.plist_t, val);
             *val

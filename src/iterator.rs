@@ -1,7 +1,7 @@
 // jkcoxson
 
 use libc::c_void;
-use log::info;
+use log::trace;
 
 use crate::{unsafe_bindings, Plist, PlistType};
 
@@ -45,7 +45,7 @@ impl Iterator for PlistIterator {
         match self.plist.plist_type {
             PlistType::Array => {
                 let to_fill = unsafe { std::mem::zeroed() };
-                info!("Getting next item in array");
+                trace!("Getting next item in array");
                 unsafe {
                     unsafe_bindings::plist_array_next_item(
                         self.plist.plist_t,
@@ -54,10 +54,10 @@ impl Iterator for PlistIterator {
                     )
                 };
                 if to_fill.is_null() {
-                    info!("No more items in array");
+                    trace!("No more items in array");
                     None
                 } else {
-                    info!("Getting type of next item in array");
+                    trace!("Getting type of next item in array");
                     Some(PlistItem {
                         plist: unsafe { *to_fill }.into(),
                         key: None,
@@ -67,7 +67,7 @@ impl Iterator for PlistIterator {
             PlistType::Dictionary => {
                 let mut key = unsafe { std::mem::zeroed() };
                 let mut to_fill = unsafe { std::mem::zeroed() };
-                info!("Getting next item in dictionary");
+                trace!("Getting next item in dictionary");
                 unsafe {
                     unsafe_bindings::plist_dict_next_item(
                         self.plist.plist_t,
@@ -77,12 +77,12 @@ impl Iterator for PlistIterator {
                     )
                 };
                 if to_fill.is_null() {
-                    info!("No more items in dictionary");
+                    trace!("No more items in dictionary");
                     None
                 } else {
                     let key_str =
                         unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
-                    info!("Getting type of next item in dictionary");
+                    trace!("Getting type of next item in dictionary");
                     Some(PlistItem {
                         plist: to_fill.into(),
                         key: Some(key_str),
