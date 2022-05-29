@@ -4,7 +4,6 @@ use log::trace;
 
 use crate::unsafe_bindings;
 use crate::Plist;
-use crate::PlistType;
 
 impl Plist {
     /// Returns a plist with bool type
@@ -20,14 +19,13 @@ impl Plist {
     }
     /// Returns the value of the bool
     pub fn get_bool_val(&self) -> Result<bool, ()> {
-        if self.plist_type != PlistType::Boolean {
+        if self.plist_type != self.get_node_type() {
             return Err(());
         }
-        let val = unsafe { std::mem::zeroed() };
-        trace!("Getting bool value");
+        let mut val = unsafe { std::mem::zeroed() };
         Ok(unsafe {
-            unsafe_bindings::plist_get_bool_val(self.plist_t, val);
-            match *val {
+            unsafe_bindings::plist_get_bool_val(self.plist_t, &mut val);
+            match val {
                 0 => false,
                 _ => true,
             }

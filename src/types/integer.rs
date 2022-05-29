@@ -20,11 +20,11 @@ impl Plist {
         if self.plist_type != PlistType::Integer {
             return Err(());
         }
-        let val = unsafe { std::mem::zeroed() };
+        let mut val = unsafe { std::mem::zeroed() };
         trace!("Getting uint value");
         Ok(unsafe {
-            unsafe_bindings::plist_get_uint_val(self.plist_t, val);
-            *val
+            unsafe_bindings::plist_get_uint_val(self.plist_t, &mut val);
+            val
         })
     }
 }

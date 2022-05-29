@@ -15,11 +15,11 @@ impl Plist {
         if self.plist_type != PlistType::Real {
             return Err(());
         }
-        let val = unsafe { std::mem::zeroed() };
+        let mut val = unsafe { std::mem::zeroed() };
         trace!("Getting float value");
         Ok(unsafe {
-            unsafe_bindings::plist_get_real_val(self.plist_t, val);
-            *val
+            unsafe_bindings::plist_get_real_val(self.plist_t, &mut val);
+            val
         })
     }
     /// Sets a plist to type float with the given value

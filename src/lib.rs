@@ -1,7 +1,7 @@
 use log::{trace, warn};
 #[doc = include_str!("../README.md")]
 use rand::Rng;
-use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
+use std::{ffi::CString, fmt::{Formatter}, os::raw::c_char};
 
 mod iterator;
 mod types;
@@ -165,6 +165,59 @@ impl Plist {
             "TRUE" => true,
             _ => false,
         }
+    }
+
+    pub fn get_display_value(&self) -> Result<String, ()> {
+        let mut to_return;
+        match self.plist_type {
+            PlistType::Boolean => {
+                to_return = self.get_bool_val()?.to_string();
+            }
+            PlistType::Integer => {
+                to_return = self.get_uint_val()?.to_string();
+            }
+            PlistType::Real => {
+                to_return = self.get_real_val()?.to_string();
+            }
+            PlistType::Data => {
+                to_return = format!("{:?}", self.get_data_val()?);
+            }
+            PlistType::Date => {
+                todo!();
+            }
+            PlistType::String => {
+                to_return = self.get_string_val()?;
+            }
+            PlistType::Array => {
+                to_return = "[".to_string();   
+                for item in self.clone().into_iter() {
+                    to_return = format!("{}{}", to_return, item.plist.get_display_value()?);
+                }
+                to_return = format!("{}]", to_return);
+            }
+            PlistType::Dictionary => {
+                to_return = "{ ".to_string();
+                for line in self.clone().into_iter() {
+                    to_return = format!("{}{}: {}, ", to_return, line.key.unwrap(), line.plist.get_display_value()?);
+                }
+                // Chop off the last comma and space
+                to_return = format!("{} }}", to_return.chars().take(to_return.len() - 2).collect::<String>());
+            }
+            PlistType::Uid => {
+                todo!();
+            }
+            PlistType::Key => {
+                todo!();
+            }
+            PlistType::Unknown => {
+                to_return = "Unknown".to_string();
+            }
+            PlistType::None => {
+                to_return = "None".to_string();
+            }
+        }
+
+        Ok(to_return)
     }
 }
 
