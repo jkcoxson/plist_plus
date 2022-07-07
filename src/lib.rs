@@ -5,7 +5,7 @@ use log::{trace, warn};
 use rand::Rng;
 use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
 
-mod error;
+pub mod error;
 mod iterator;
 mod types;
 mod unsafe_bindings;
