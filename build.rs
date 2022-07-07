@@ -87,12 +87,10 @@ fn repo_setup(url: &str) {
     cmd.arg("clone");
     cmd.arg(url);
     cmd.output().unwrap();
-    env::set_current_dir(url.split("/").last().unwrap().replace(".git", "")).unwrap();
+    env::set_current_dir(url.split('/').last().unwrap().replace(".git", "")).unwrap();
     env::set_var("NOCONFIGURE", "1");
     let mut cmd = std::process::Command::new("./autogen.sh");
-    match cmd.output() {
-        _ => (),
-    }
+    let _ = cmd.output();
     env::remove_var("NOCONFIGURE");
     env::set_current_dir("..").unwrap();
 }

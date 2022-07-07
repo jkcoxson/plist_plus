@@ -2,7 +2,7 @@
 
 use log::trace;
 
-use crate::{unsafe_bindings, Plist, PlistType};
+use crate::{error::PlistError, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Creates a new plist with the type of an integer
@@ -16,9 +16,9 @@ impl Plist {
         unsafe { unsafe_bindings::plist_set_uint_val(self.plist_t, val) }
     }
     /// Returns the value of the integer
-    pub fn get_uint_val(&self) -> Result<u64, ()> {
+    pub fn get_uint_val(&self) -> Result<u64, PlistError> {
         if self.plist_type != PlistType::Integer {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let mut val = unsafe { std::mem::zeroed() };
         trace!("Getting uint value");
@@ -30,7 +30,7 @@ impl Plist {
 }
 
 impl TryFrom<Plist> for u64 {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_uint_val()
     }
@@ -43,7 +43,7 @@ impl From<u64> for Plist {
 }
 
 impl TryFrom<Plist> for u32 {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_uint_val().map(|val| val as u32)
     }
@@ -56,7 +56,7 @@ impl From<u32> for Plist {
 }
 
 impl TryFrom<Plist> for u16 {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_uint_val().map(|val| val as u16)
     }
@@ -69,7 +69,7 @@ impl From<u16> for Plist {
 }
 
 impl TryFrom<Plist> for u8 {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_uint_val().map(|val| val as u8)
     }
@@ -82,7 +82,7 @@ impl From<u8> for Plist {
 }
 
 impl TryFrom<Plist> for usize {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_uint_val().map(|x| x as usize)
     }

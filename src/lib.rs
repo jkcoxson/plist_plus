@@ -1,8 +1,11 @@
-use log::{trace, warn};
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+use error::PlistError;
 #[doc = include_str!("../README.md")]
+use log::{trace, warn};
 use rand::Rng;
-use std::{ffi::CString, fmt::{Formatter}, os::raw::c_char};
+use std::{ffi::CString, fmt::Formatter, os::raw::c_char};
 
+mod error;
 mod iterator;
 mod types;
 mod unsafe_bindings;
@@ -43,12 +46,12 @@ impl Plist {
         self.plist_t as *mut std::ffi::c_void
     }
     /// This takes a string in the form of XML and returns a Plist struct
-    pub fn from_xml(xml: String) -> Result<Plist, ()> {
+    pub fn from_xml(xml: String) -> Result<Plist, PlistError> {
         let xml = match CString::new(xml) {
             Ok(s) => s,
             Err(_) => {
                 warn!("Could not convert string to CString");
-                return Err(());
+                return Err(PlistError::InvalidArg);
             }
         };
         let xml_len = std::convert::TryInto::try_into(xml.as_bytes().len()).unwrap();
@@ -60,7 +63,7 @@ impl Plist {
         Ok(plist_t.into())
     }
     /// This takes a string in the form of binary and returns a Plist struct
-    pub fn from_bin(bin: Vec<u8>) -> Result<Plist, ()> {
+    pub fn from_bin(bin: Vec<u8>) -> Result<Plist, PlistError> {
         let mut plist_t = unsafe { std::mem::zeroed() };
         let result = unsafe {
             unsafe_bindings::plist_from_bin(
@@ -70,11 +73,11 @@ impl Plist {
             )
         };
         if result != 0 {
-            return Err(());
+            return Err(result.into());
         }
         Ok(plist_t.into())
     }
-    pub fn from_memory(bin: Vec<u8>) -> Result<Plist, ()> {
+    pub fn from_memory(bin: Vec<u8>) -> Result<Plist, PlistError> {
         let mut plist_t = unsafe { std::mem::zeroed() };
         let result = unsafe {
             unsafe_bindings::plist_from_memory(
@@ -84,13 +87,15 @@ impl Plist {
             )
         };
         if result != 0 {
-            return Err(());
+            return Err(result.into());
         }
         Ok(plist_t.into())
     }
     /// This will back the plist to the plist it came from
     /// This is unsafe due to how the underlying C library works
     /// It will return a second copy of the plist, and should be false dropped if used
+    /// # Safety
+    /// Don't be stupid
     pub unsafe fn get_parent(self) -> Plist {
         trace!("Getting parent");
         unsafe_bindings::plist_get_parent(self.plist_t).into()
@@ -109,16 +114,16 @@ impl Plist {
             unsafe_bindings::plist_get_data_val(self.plist_t, plist_data, plist_len);
         }
         trace!("Checking if plist is binary");
-        match unsafe {
-            unsafe_bindings::plist_is_binary(*plist_data, (*plist_len).try_into().unwrap())
-        } {
-            0 => false,
-            _ => true,
-        }
+        !matches!(
+            unsafe {
+                unsafe_bindings::plist_is_binary(*plist_data, (*plist_len).try_into().unwrap())
+            },
+            0
+        )
     }
     /// Traverses a list of plists
     /// Reimplimented from the C function because function overloading is evil
-    pub fn access_path(self, plists: Vec<String>) -> Result<Plist, ()> {
+    pub fn access_path(self, plists: Vec<String>) -> Result<Plist, PlistError> {
         let mut current = self;
         let mut i = 0;
         while i < plists.len() {
@@ -126,17 +131,17 @@ impl Plist {
                 PlistType::Array => {
                     current = match current.array_get_item(i as u32) {
                         Ok(item) => item,
-                        Err(_) => return Err(()),
+                        Err(_) => return Err(PlistError::InvalidArg),
                     };
                 }
                 PlistType::Dictionary => {
                     current = match current.dict_get_item(&plists[i]) {
                         Ok(item) => item,
-                        Err(_) => return Err(()),
+                        Err(_) => return Err(PlistError::InvalidArg),
                     };
                 }
                 _ => {
-                    return Err(());
+                    return Err(PlistError::InvalidArg);
                 }
             }
             i += 1;
@@ -158,16 +163,15 @@ impl Plist {
     /// Compares two structs and determines if they are equal
     pub fn compare_node_values(node_l: Plist, node_r: Plist) -> bool {
         trace!("Comparing node values");
-        match unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
-            .to_string()
-            .as_str()
-        {
-            "TRUE" => true,
-            _ => false,
-        }
+        matches!(
+            unsafe { unsafe_bindings::plist_compare_node_value(node_l.plist_t, node_r.plist_t) }
+                .to_string()
+                .as_str(),
+            "TRUE"
+        )
     }
 
-    pub fn get_display_value(&self) -> Result<String, ()> {
+    pub fn get_display_value(&self) -> Result<String, PlistError> {
         let mut to_return;
         match self.plist_type {
             PlistType::Boolean => {
@@ -189,7 +193,7 @@ impl Plist {
                 to_return = self.get_string_val()?;
             }
             PlistType::Array => {
-                to_return = "[".to_string();   
+                to_return = "[".to_string();
                 for item in self.clone().into_iter() {
                     to_return = format!("{}{}", to_return, item.plist.get_display_value()?);
                 }
@@ -198,10 +202,21 @@ impl Plist {
             PlistType::Dictionary => {
                 to_return = "{ ".to_string();
                 for line in self.clone().into_iter() {
-                    to_return = format!("{}{}: {}, ", to_return, line.key.unwrap(), line.plist.get_display_value()?);
+                    to_return = format!(
+                        "{}{}: {}, ",
+                        to_return,
+                        line.key.unwrap(),
+                        line.plist.get_display_value()?
+                    );
                 }
                 // Chop off the last comma and space
-                to_return = format!("{} }}", to_return.chars().take(to_return.len() - 2).collect::<String>());
+                to_return = format!(
+                    "{} }}",
+                    to_return
+                        .chars()
+                        .take(to_return.len() - 2)
+                        .collect::<String>()
+                );
             }
             PlistType::Uid => {
                 todo!();
@@ -230,7 +245,7 @@ impl From<unsafe_bindings::plist_t> for Plist {
             plist_t,
             plist_type: unsafe { unsafe_bindings::plist_get_node_type(plist_t) }.into(),
             dependent_plists: Vec::new(),
-            id: id,
+            id,
         }
     }
 }
@@ -249,8 +264,8 @@ impl From<Plist> for String {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
         let plist_data = std::str::from_utf8(plist_data).unwrap();
-        let plist_data = String::from(plist_data);
-        plist_data
+
+        String::from(plist_data)
     }
 }
 
@@ -267,8 +282,8 @@ impl ToString for Plist {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
         let plist_data = std::str::from_utf8(plist_data).unwrap();
-        let plist_data = String::from(plist_data);
-        plist_data
+
+        String::from(plist_data)
     }
 }
 
@@ -285,8 +300,8 @@ impl From<Plist> for Vec<u8> {
         let plist_data = unsafe {
             std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
         };
-        let plist_data = plist_data.to_vec();
-        plist_data
+
+        plist_data.to_vec()
     }
 }
 

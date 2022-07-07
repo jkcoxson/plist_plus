@@ -4,7 +4,7 @@ use std::{ffi::CString, os::raw::c_char};
 
 use log::trace;
 
-use crate::{unsafe_bindings, Plist, PlistType};
+use crate::{error::PlistError, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Returns a plist with type dictionary
@@ -14,17 +14,17 @@ impl Plist {
         unsafe { unsafe_bindings::plist_new_dict() }.into()
     }
     /// Returns the number of items contained in the plist dictionary
-    pub fn dict_get_size(&self) -> Result<u32, ()> {
+    pub fn dict_get_size(&self) -> Result<u32, PlistError> {
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         trace!("Getting dict size");
         Ok(unsafe { unsafe_bindings::plist_dict_get_size(self.plist_t) })
     }
     /// Get the key associated with the item
-    pub fn dict_get_item_key(&self) -> Result<String, ()> {
+    pub fn dict_get_item_key(&self) -> Result<String, PlistError> {
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let mut key = std::ptr::null_mut();
         trace!("Getting dict item key for {}", self.id);
@@ -34,9 +34,9 @@ impl Plist {
         Ok(key)
     }
     /// Get the item associated with the key
-    pub fn dict_get_item(&self, key: &str) -> Result<Plist, ()> {
+    pub fn dict_get_item(&self, key: &str) -> Result<Plist, PlistError> {
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let key_c_string = CString::new(key).unwrap();
         trace!("Getting dict item for {}", self.id);
@@ -46,14 +46,14 @@ impl Plist {
         Ok(item)
     }
     /// Get the key associated with self within a dictionary
-    pub fn dict_item_get_key(&self) -> Result<Plist, ()> {
+    pub fn dict_item_get_key(&self) -> Result<Plist, PlistError> {
         trace!("Getting dict item key");
         Ok(unsafe { unsafe_bindings::plist_dict_item_get_key(self.plist_t) }.into())
     }
-    pub fn dict_set_item(&mut self, key: &str, item: Plist) -> Result<(), ()> {
+    pub fn dict_set_item(&mut self, key: &str, item: Plist) -> Result<(), PlistError> {
         let key = CString::new(key).unwrap();
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         trace!("Setting dict item");
         unsafe { unsafe_bindings::plist_dict_set_item(self.plist_t, key.as_ptr(), item.plist_t) }
@@ -63,10 +63,10 @@ impl Plist {
     }
     /// Inserts a new item into the dictionary
     /// The item must also be a plist
-    pub fn dict_insert_item(&mut self, key: &str, item: Plist) -> Result<(), ()> {
+    pub fn dict_insert_item(&mut self, key: &str, item: Plist) -> Result<(), PlistError> {
         let key = CString::new(key).unwrap();
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         trace!("Inserting dict item");
         unsafe {
@@ -81,10 +81,10 @@ impl Plist {
         Ok(())
     }
     /// Removes an item from the dictionary with a given key
-    pub fn dict_remove_item(&self, key: &str) -> Result<(), ()> {
+    pub fn dict_remove_item(&self, key: &str) -> Result<(), PlistError> {
         let key = CString::new(key).unwrap();
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         trace!("Removing dict item");
         unsafe {
@@ -93,9 +93,9 @@ impl Plist {
         Ok(())
     }
     /// Merges a dictionary into the current dictionary
-    pub fn dict_merge(&mut self, dict: Plist) -> Result<(), ()> {
+    pub fn dict_merge(&mut self, dict: Plist) -> Result<(), PlistError> {
         if self.plist_type != PlistType::Dictionary {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         trace!("Merging dict");
         unsafe { unsafe_bindings::plist_dict_merge(&mut self.plist_t, dict.plist_t) }

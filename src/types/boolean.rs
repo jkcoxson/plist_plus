@@ -2,6 +2,7 @@
 
 use log::trace;
 
+use crate::error::PlistError;
 use crate::unsafe_bindings;
 use crate::Plist;
 
@@ -10,7 +11,7 @@ impl Plist {
     pub fn new_bool(bool: bool) -> Plist {
         trace!("Generating new bool plist");
         unsafe {
-            unsafe_bindings::plist_new_bool(match bool == true {
+            unsafe_bindings::plist_new_bool(match bool {
                 true => 1,
                 false => 0,
             })
@@ -18,17 +19,14 @@ impl Plist {
         .into()
     }
     /// Returns the value of the bool
-    pub fn get_bool_val(&self) -> Result<bool, ()> {
+    pub fn get_bool_val(&self) -> Result<bool, PlistError> {
         if self.plist_type != self.get_node_type() {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let mut val = unsafe { std::mem::zeroed() };
         Ok(unsafe {
             unsafe_bindings::plist_get_bool_val(self.plist_t, &mut val);
-            match val {
-                0 => false,
-                _ => true,
-            }
+            !matches!(val, 0)
         })
     }
     /// Sets a plist to type bool with the given value
@@ -40,7 +38,7 @@ impl Plist {
 }
 
 impl TryFrom<Plist> for bool {
-    type Error = ();
+    type Error = PlistError;
     fn try_from(plist: Plist) -> Result<Self, Self::Error> {
         plist.get_bool_val()
     }

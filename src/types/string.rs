@@ -4,7 +4,7 @@ use std::{ffi::CString, os::raw::c_char};
 
 use log::trace;
 
-use crate::{unsafe_bindings, Plist, PlistType};
+use crate::{error::PlistError, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Creates a new plist with type string
@@ -19,9 +19,9 @@ impl Plist {
         unsafe { unsafe_bindings::plist_new_string(string.as_ptr() as *const c_char) }.into()
     }
     /// Returns the value of the string
-    pub fn get_string_val(&self) -> Result<String, ()> {
+    pub fn get_string_val(&self) -> Result<String, PlistError> {
         if self.plist_type != PlistType::String {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let mut val = std::ptr::null_mut();
         trace!("Getting string value");
@@ -31,6 +31,8 @@ impl Plist {
         Ok(val)
     }
     /// Returns a C pointer to a CString containing the value of the string
+    /// # Safety
+    /// Don't be stupid
     pub unsafe fn get_string_ptr(&self) -> *const c_char {
         unsafe_bindings::plist_get_string_ptr(self.plist_t, std::ptr::null_mut())
     }
@@ -46,8 +48,7 @@ impl Plist {
 
 impl From<String> for Plist {
     fn from(plist_data: String) -> Self {
-        let s = Plist::new_string(&plist_data);
-        s
+        Plist::new_string(&plist_data)
     }
 }
 

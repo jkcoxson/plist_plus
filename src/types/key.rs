@@ -4,14 +4,14 @@ use std::{ffi::CString, os::raw::c_char};
 
 use log::trace;
 
-use crate::{unsafe_bindings, Plist, PlistType};
+use crate::{error::PlistError, unsafe_bindings, Plist, PlistType};
 
 impl Plist {
     /// Gets the key plist value
     /// Current uses of this are unknown
-    pub fn get_key_val(&self) -> Result<String, ()> {
+    pub fn get_key_val(&self) -> Result<String, PlistError> {
         if self.plist_type != PlistType::Key {
-            return Err(());
+            return Err(PlistError::InvalidArg);
         }
         let mut key = std::ptr::null_mut();
         trace!("Getting key value");
