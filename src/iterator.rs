@@ -80,8 +80,12 @@ impl Iterator for PlistIterator {
                     trace!("No more items in dictionary");
                     None
                 } else {
-                    let key_str =
-                        unsafe { std::ffi::CStr::from_ptr(key).to_string_lossy().into_owned() };
+                    let key_str = unsafe {
+                        std::ffi::CString::from_raw(key)
+                            .to_str()
+                            .unwrap()
+                            .to_string()
+                    };
                     trace!("Getting type of next item in dictionary");
                     Some(PlistItem {
                         plist: to_fill.into(),
@@ -90,6 +94,15 @@ impl Iterator for PlistIterator {
                 }
             }
             _ => panic!("Cannot iterate over non-array or non-dictionary plist"),
+        }
+    }
+}
+
+impl Drop for PlistIterator {
+    fn drop(&mut self) {
+        // Free the pointer
+        unsafe {
+            libc::free(self.iter_pointer as *mut c_void);
         }
     }
 }

@@ -15,7 +15,6 @@ mod unsafe_bindings;
 pub struct Plist {
     pub(crate) plist_t: unsafe_bindings::plist_t,
     pub plist_type: PlistType,
-    pub(crate) dependent_plists: Vec<unsafe_bindings::plist_t>,
     pub(crate) id: u32,
 }
 
@@ -23,7 +22,7 @@ unsafe impl Send for Plist {}
 unsafe impl Sync for Plist {}
 
 /// The type of a given plist
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum PlistType {
     Boolean,
     Integer,
@@ -156,8 +155,7 @@ impl Plist {
     /// Needs more research...
     pub fn false_drop(mut self) {
         trace!("False dropping {}", self.id);
-        let replacement = unsafe { unsafe_bindings::plist_new_bool(0) };
-        self.plist_t = replacement;
+        self.plist_t = 0 as unsafe_bindings::plist_t;
     }
 
     /// Compares two structs and determines if they are equal
@@ -190,18 +188,19 @@ impl Plist {
                 todo!();
             }
             PlistType::String => {
-                to_return = self.get_string_val()?;
+                to_return = format!("\"{}\"", self.get_string_val()?);
             }
             PlistType::Array => {
                 to_return = "[".to_string();
-                for item in self.clone().into_iter() {
+                for item in self.clone() {
+                    println!("Item go!");
                     to_return = format!("{}{}", to_return, item.plist.get_display_value()?);
                 }
                 to_return = format!("{}]", to_return);
             }
             PlistType::Dictionary => {
                 to_return = "{ ".to_string();
-                for line in self.clone().into_iter() {
+                for line in self.clone() {
                     to_return = format!(
                         "{}{}: {}, ",
                         to_return,
@@ -244,7 +243,6 @@ impl From<unsafe_bindings::plist_t> for Plist {
         Plist {
             plist_t,
             plist_type: unsafe { unsafe_bindings::plist_get_node_type(plist_t) }.into(),
-            dependent_plists: Vec::new(),
             id,
         }
     }
@@ -278,12 +276,13 @@ impl ToString for Plist {
             unsafe_bindings::plist_to_xml(self.plist_t, &mut plist_data, &mut plist_size);
         }
         trace!("Assembling XML data");
-        let plist_data = unsafe {
-            std::slice::from_raw_parts(plist_data as *const u8, plist_size.try_into().unwrap())
-        };
-        let plist_data = std::str::from_utf8(plist_data).unwrap();
 
-        String::from(plist_data)
+        let plist_data = unsafe { std::ffi::CString::from_raw(plist_data as *mut c_char) }
+            .to_str()
+            .unwrap()
+            .to_string();
+
+        plist_data
     }
 }
 
@@ -314,25 +313,6 @@ impl Clone for Plist {
     }
 }
 
-impl Clone for PlistType {
-    fn clone(&self) -> Self {
-        match self {
-            PlistType::Array => PlistType::Array,
-            PlistType::Boolean => PlistType::Boolean,
-            PlistType::Data => PlistType::Data,
-            PlistType::Date => PlistType::Date,
-            PlistType::Dictionary => PlistType::Dictionary,
-            PlistType::Integer => PlistType::Integer,
-            PlistType::Real => PlistType::Real,
-            PlistType::String => PlistType::String,
-            PlistType::Uid => PlistType::Uid,
-            PlistType::Unknown => PlistType::Unknown,
-            PlistType::Key => PlistType::Key,
-            PlistType::None => PlistType::None,
-        }
-    }
-}
-
 impl std::fmt::Debug for Plist {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let plist_data = self.to_string();
@@ -343,11 +323,6 @@ impl std::fmt::Debug for Plist {
 impl Drop for Plist {
     fn drop(&mut self) {
         trace!("Dropping plist {}", self.id);
-        // Dependent plists should be freed automatically because this object is being dropped, right?
-        if self.plist_t as u8 == 0 {
-            warn!("Plist has already been freed");
-            return;
-        }
         unsafe { unsafe_bindings::plist_free(self.plist_t) }
         trace!("Plist dropped");
     }

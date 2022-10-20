@@ -57,7 +57,6 @@ impl Plist {
         }
         trace!("Setting dict item");
         unsafe { unsafe_bindings::plist_dict_set_item(self.plist_t, key.as_ptr(), item.plist_t) }
-        self.dependent_plists.push(item.plist_t);
         item.false_drop();
         Ok(())
     }
@@ -76,7 +75,6 @@ impl Plist {
                 item.plist_t,
             )
         }
-        self.dependent_plists.push(item.plist_t);
         item.false_drop();
         Ok(())
     }
@@ -99,7 +97,6 @@ impl Plist {
         }
         trace!("Merging dict");
         unsafe { unsafe_bindings::plist_dict_merge(&mut self.plist_t, dict.plist_t) }
-        self.dependent_plists.push(dict.plist_t);
         dict.false_drop();
         Ok(())
     }

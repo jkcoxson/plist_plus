@@ -43,7 +43,6 @@ impl Plist {
         }
         trace!("Setting array item");
         unsafe { unsafe_bindings::plist_array_set_item(self.plist_t, item.plist_t, index) };
-        self.dependent_plists.push(item.plist_t);
         item.false_drop();
         Ok(())
     }
@@ -54,7 +53,6 @@ impl Plist {
         }
         trace!("Appending array item");
         unsafe { unsafe_bindings::plist_array_append_item(self.plist_t, item.plist_t) };
-        self.dependent_plists.push(item.plist_t);
         item.false_drop();
         Ok(())
     }
@@ -65,7 +63,6 @@ impl Plist {
         }
         trace!("Inserting array item");
         unsafe { unsafe_bindings::plist_array_insert_item(self.plist_t, item.plist_t, index) }
-        self.dependent_plists.push(item.plist_t);
         item.false_drop();
         Ok(())
     }

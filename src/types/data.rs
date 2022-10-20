@@ -30,7 +30,9 @@ impl Plist {
         unsafe {
             unsafe_bindings::plist_get_data_val(self.plist_t, &mut val, &mut size);
         }
-        let val = unsafe { std::slice::from_raw_parts(val, size as usize) };
+
+        let val = unsafe { std::vec::Vec::from_raw_parts(val, size as usize, size as usize) };
+
         Ok(val.to_vec())
     }
     /// Sets the contents of a plist to the given data

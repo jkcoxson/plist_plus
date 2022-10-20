@@ -27,7 +27,12 @@ impl Plist {
         trace!("Getting string value");
         unsafe { unsafe_bindings::plist_get_string_val(self.plist_t, &mut val) };
         trace!("Converting cstring to string");
-        let val = unsafe { std::ffi::CStr::from_ptr(val).to_string_lossy().into_owned() };
+        let val = unsafe {
+            std::ffi::CString::from_raw(val)
+                .to_str()
+                .unwrap()
+                .to_string()
+        };
         Ok(val)
     }
     /// Returns a C pointer to a CString containing the value of the string
