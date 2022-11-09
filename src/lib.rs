@@ -277,12 +277,11 @@ impl ToString for Plist {
         }
         trace!("Assembling XML data");
 
-        let plist_data = unsafe { std::ffi::CString::from_raw(plist_data as *mut c_char) }
-            .to_str()
-            .unwrap()
-            .to_string();
+        let plist_data =
+            unsafe { std::slice::from_raw_parts(plist_data as *mut u8, plist_size as usize) };
+        let plist_data = std::str::from_utf8(plist_data).unwrap();
 
-        plist_data
+        plist_data.to_string()
     }
 }
 
