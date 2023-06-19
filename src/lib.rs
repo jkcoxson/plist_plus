@@ -83,6 +83,7 @@ impl Plist {
                 bin.as_ptr() as *const c_char,
                 bin.len() as u32,
                 &mut plist_t,
+                std::ptr::null_mut(),
             )
         };
         if result != 0 {
@@ -324,6 +325,25 @@ impl Drop for Plist {
         trace!("Dropping plist {}", self.id);
         unsafe { unsafe_bindings::plist_free(self.plist_t) }
         trace!("Plist dropped");
+    }
+}
+
+impl From<i32> for PlistType {
+    fn from(i: i32) -> Self {
+        match i {
+            0 => PlistType::Boolean,
+            1 => PlistType::Integer,
+            2 => PlistType::Real,
+            3 => PlistType::String,
+            4 => PlistType::Array,
+            5 => PlistType::Dictionary,
+            6 => PlistType::Date,
+            7 => PlistType::Data,
+            8 => PlistType::Key,
+            9 => PlistType::Uid,
+            10 => PlistType::None,
+            _ => PlistType::Unknown,
+        }
     }
 }
 

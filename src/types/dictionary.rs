@@ -69,7 +69,7 @@ impl Plist {
         }
         trace!("Inserting dict item");
         unsafe {
-            unsafe_bindings::plist_dict_insert_item(
+            unsafe_bindings::plist_dict_set_item(
                 self.plist_t,
                 key.as_ptr() as *const c_char,
                 item.plist_t,
