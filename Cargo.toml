@@ -1,13 +1,19 @@
 [package]
 name = "plist_plus"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
-authors = [ "Jackson Coxson" ]
+authors = ["Jackson Coxson"]
 description = "A library for reading and writing plists, compatible with libimobiledevice"
 homepage = "https://github.com/jkcoxson/plist_plus"
 repository = "https://github.com/jkcoxson/plist_plus"
 license = "LGPL-2.1-or-later"
-keywords = [ "plist", "plist_plus", "libimobiledevice", "libplist", "libplist_plus" ]
+keywords = [
+  "plist",
+  "plist_plus",
+  "libimobiledevice",
+  "libplist",
+  "libplist_plus",
+]
 readme = "README.md"
 documentation = "https://docs.rs/plist_plus"
 
@@ -27,6 +33,5 @@ autotools = "0.2.5"
 pls-generate = []
 dynamic = []
 static = []
-vendored = [
-    "static"
-]
+vendored = ["static"]
+
