@@ -2,7 +2,7 @@
 
 use crate::{error::PlistError, unsafe_bindings, Plist, PlistType};
 use log::trace;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 const MAC_EPOCH: u64 = 978307200; // 01/01/2001
 
@@ -16,10 +16,8 @@ impl Plist {
     /// # Example
     /// ```rust
     /// use std::time::Duration;
-    /// let now = SystemTime::now()
-    ///    .duration_since(SystemTime::UNIX_EPOCH)
-    ///    .unwrap();
-    /// Plist::new_date(now);
+    /// let some_date = Plist::new_date(Duration::from_secs(1546635600));
+    /// let now: Plist = SystemTime::now().into();
     /// ```
     pub fn new_date(date: Duration) -> Plist {
         trace!("Generating new date plist");
@@ -56,6 +54,14 @@ impl Plist {
 impl From<Duration> for Plist {
     fn from(value: Duration) -> Self {
         Plist::new_date(value)
+    }
+}
+
+impl From<SystemTime> for Plist {
+    fn from(value: SystemTime) -> Self {
+        // unwrapping should be safe since UNIX_EPOCH
+        // is always lesser than SystemTime::now()
+        Plist::new_date(value.duration_since(SystemTime::UNIX_EPOCH).unwrap())
     }
 }
 
