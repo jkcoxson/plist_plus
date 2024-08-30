@@ -6,6 +6,7 @@
 #![allow(deref_nullptr)]
 #![allow(improper_ctypes)]
 #![allow(dead_code)]
+#![allow(clippy::upper_case_acronyms)]
 
 // This was mostly done for rust-analyzer, but it's useful to have it here
 
