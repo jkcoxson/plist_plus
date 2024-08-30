@@ -1,6 +1,6 @@
 [package]
 name = "plist_plus"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 authors = ["Jackson Coxson"]
 description = "A library for reading and writing plists, compatible with libimobiledevice"
@@ -34,4 +34,3 @@ pls-generate = []
 dynamic = []
 static = []
 vendored = ["static"]
-
