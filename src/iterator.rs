@@ -102,7 +102,7 @@ impl Drop for PlistIterator {
     fn drop(&mut self) {
         // Free the pointer
         unsafe {
-            libc::free(self.iter_pointer as *mut c_void);
+            libc::free(self.iter_pointer);
         }
     }
 }

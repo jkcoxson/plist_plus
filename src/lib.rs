@@ -42,7 +42,7 @@ impl Plist {
     /// Returns a pointer to the underlying C compatible structure
     /// This is compatible with libraries such as libimobiledevice
     pub fn get_pointer(&self) -> *mut std::ffi::c_void {
-        self.plist_t as *mut std::ffi::c_void
+        self.plist_t
     }
     /// This takes a string in the form of XML and returns a Plist struct
     pub fn from_xml(xml: String) -> Result<Plist, PlistError> {
