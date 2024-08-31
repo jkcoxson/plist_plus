@@ -16,6 +16,7 @@ pub struct Plist {
     pub(crate) plist_t: unsafe_bindings::plist_t,
     pub plist_type: PlistType,
     pub(crate) id: u32,
+    pub(crate) false_drop: bool,
 }
 
 unsafe impl Send for Plist {}
@@ -155,8 +156,8 @@ impl Plist {
     /// This prevents many segfaults, but may cause unknown memory leaks.
     /// Needs more research...
     pub fn false_drop(mut self) {
+        self.false_drop = true;
         trace!("False dropping {}", self.id);
-        self.plist_t = 0 as unsafe_bindings::plist_t;
     }
 
     /// Compares two structs and determines if they are equal
@@ -245,6 +246,7 @@ impl From<unsafe_bindings::plist_t> for Plist {
             plist_t,
             plist_type: unsafe { unsafe_bindings::plist_get_node_type(plist_t) }.into(),
             id,
+            false_drop: false,
         }
     }
 }
@@ -322,9 +324,11 @@ impl std::fmt::Debug for Plist {
 
 impl Drop for Plist {
     fn drop(&mut self) {
-        trace!("Dropping plist {}", self.id);
-        unsafe { unsafe_bindings::plist_free(self.plist_t) }
-        trace!("Plist dropped");
+        if !self.false_drop {
+            trace!("Dropping plist {}", self.id);
+            unsafe { unsafe_bindings::plist_free(self.plist_t) }
+            trace!("Plist dropped");
+        }
     }
 }
 

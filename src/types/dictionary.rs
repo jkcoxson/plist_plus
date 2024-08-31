@@ -40,9 +40,10 @@ impl Plist {
         }
         let key_c_string = CString::new(key).unwrap();
         trace!("Getting dict item for {}", self.id);
-        let item: Plist =
+        let mut item: Plist =
             unsafe { unsafe_bindings::plist_dict_get_item(self.plist_t, key_c_string.as_ptr()) }
                 .into();
+        item.false_drop = true;
         Ok(item)
     }
     /// Get the key associated with self within a dictionary
