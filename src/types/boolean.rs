@@ -49,3 +49,15 @@ impl From<bool> for Plist {
         Plist::new_bool(val)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bool() {
+        let p = Plist::new_bool(false);
+        p.set_bool_val(true);
+        assert_eq!(p.get_bool_val().unwrap(), true);
+    }
+}

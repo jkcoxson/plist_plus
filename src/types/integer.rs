@@ -93,3 +93,15 @@ impl From<usize> for Plist {
         Plist::new_uint(val as u64)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn int_test() {
+        let p = Plist::new_uint(123412340987);
+        p.set_uint_val(098709781234);
+        assert_eq!(p.get_uint_val().unwrap(), 098709781234);
+    }
+}

@@ -52,3 +52,15 @@ impl From<Vec<u8>> for Plist {
         Plist::new_data(&plist_data)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn byte_tests() {
+        let p = Plist::new_data(&vec![1, 2, 3, 4, 5]);
+        p.set_data_val(&vec![5, 4, 3, 2, 1]).unwrap();
+        assert_eq!(p.get_data_val().unwrap(), vec![5, 4, 3, 2, 1]);
+    }
+}

@@ -82,3 +82,16 @@ impl Plist {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn array_test() {
+        let b = Plist::new_bool(true);
+        let mut p = Plist::new_array();
+        p.array_append_item(b).unwrap();
+        assert!(p.array_get_item(0).unwrap().get_bool_val().unwrap());
+    }
+}

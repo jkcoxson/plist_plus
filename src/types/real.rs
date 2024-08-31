@@ -42,3 +42,15 @@ impl From<f64> for Plist {
         Plist::new_real(val)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn real_test() {
+        let p = Plist::new_real(3.1415926);
+        p.set_real_val(1234.098765).unwrap();
+        assert_eq!(p.get_real_val().unwrap(), 1234.098765)
+    }
+}

@@ -68,3 +68,15 @@ impl From<&str> for Plist {
         Plist::new_string(plist_data)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn string_test() {
+        let p = Plist::new_string("this is a string");
+        p.set_string_val("this is a different string");
+        assert_eq!(p.get_string_val().unwrap(), "this is a different string")
+    }
+}

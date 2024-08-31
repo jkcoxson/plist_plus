@@ -107,3 +107,22 @@ impl Drop for PlistIterator {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn iter_test() {
+        let mut p = Plist::new_array();
+        let _ = [0_u8; 4]
+            .iter()
+            .enumerate()
+            .map(|(x, _)| p.array_append_item(x.into()).unwrap());
+        let mut i = p.into_iter();
+        let _ = [0_u8; 4]
+            .iter()
+            .enumerate()
+            .map(|(x, _)| assert_eq!(x as u64, i.next().unwrap().plist.get_uint_val().unwrap()));
+    }
+}

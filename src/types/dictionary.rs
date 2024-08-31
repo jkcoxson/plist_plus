@@ -102,3 +102,17 @@ impl Plist {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dict_test() {
+        let b = Plist::new_bool(false);
+        let mut p = Plist::new_dict();
+        p.dict_set_item("b", b).unwrap();
+        let b = p.dict_get_item("b").unwrap();
+        assert_eq!(b.get_bool_val().unwrap(), false);
+    }
+}
