@@ -18,6 +18,6 @@ jobs:
       - name: Install dependencies
         run: sudo apt install valgrind
       - name: Install cargo-valgrind
-        run: caro install cargo-valgrind
+        run: cargo install cargo-valgrind
       - name: Run valgrind over the tests
         run: cargo valgrind test --features vendored
