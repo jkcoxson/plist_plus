@@ -72,6 +72,7 @@ mod tests {
     use super::*;
     use std::time::{Duration, SystemTime};
 
+    #[ignore = "https://github.com/libimobiledevice/libplist/issues/264"]
     #[test]
     fn check_unix_mac_date() {
         let timestamp = 1546635600123456; // Jan 04 2019 21:00:00.123456
@@ -82,9 +83,8 @@ mod tests {
         let secs = 1546635600 - MAC_EPOCH;
         let usecs = 123456;
 
-        let mac_plist: Plist = unsafe {
-            unsafe_bindings::plist_new_date(secs as i32, usecs)
-        }.into();
+        let mac_plist: Plist =
+            unsafe { unsafe_bindings::plist_new_date(secs as i32, usecs) }.into();
 
         assert_eq!(
             unix_plist.get_date_val().unwrap(),
@@ -92,19 +92,19 @@ mod tests {
         );
     }
 
+    #[ignore = "https://github.com/libimobiledevice/libplist/issues/264"]
     #[test]
     fn set_random_date() {
         let timestamp = 1546635600123456; // Jan 04 2019 21:00:00.123456
 
         let date = Duration::from_micros(timestamp);
         let plist = Plist::new_date(
-            SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap()
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap(),
         ); // create a new date with a current time
         plist.set_date_val(date); // set a new time
 
-        assert_eq!(
-            date,
-            plist.get_date_val().unwrap()
-        );
+        assert_eq!(date, plist.get_date_val().unwrap());
     }
 }
