@@ -1,6 +1,6 @@
 [package]
 name = "plist_plus"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 authors = ["Jackson Coxson"]
 description = "A library for reading and writing plists, compatible with libimobiledevice"
