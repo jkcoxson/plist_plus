@@ -15,7 +15,9 @@ impl Plist {
     ///
     /// # Example
     /// ```rust
-    /// use std::time::Duration;
+    /// use std::time::{Duration, SystemTime};
+    /// use plist_plus::Plist;
+    ///
     /// let some_date = Plist::new_date(Duration::from_secs(1546635600));
     /// let now: Plist = SystemTime::now().into();
     /// ```
