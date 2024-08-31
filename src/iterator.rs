@@ -10,6 +10,7 @@ pub struct PlistIterator {
     plist: Plist,
 }
 
+#[derive(Debug)]
 pub struct PlistItem {
     pub plist: Plist,
     pub key: Option<String>,
