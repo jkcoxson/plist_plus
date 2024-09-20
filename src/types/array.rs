@@ -97,4 +97,24 @@ mod tests {
         p.array_append_item(b).unwrap();
         assert!(p.array_get_item(0).unwrap().get_bool_val().unwrap());
     }
+
+    #[test]
+    fn array_get_item_test() {
+        // Create a new array with 3 items
+        let mut arr = Plist::new_array();
+        arr.array_append_item(Plist::new_string("1")).unwrap();
+        arr.array_append_item(Plist::new_string("2")).unwrap();
+        arr.array_append_item(Plist::new_string("3")).unwrap();
+
+        // Get items and immediately drop them
+        std::mem::drop(arr.array_get_item(0).unwrap());
+        std::mem::drop(arr.array_get_item(1).unwrap());
+        std::mem::drop(arr.array_get_item(2).unwrap());
+
+        // Check if the items are still present.
+        // They should be because we false drop them
+        assert_eq!("1", arr.array_get_item(0).unwrap().get_string_val().unwrap());
+        assert_eq!("2", arr.array_get_item(1).unwrap().get_string_val().unwrap());
+        assert_eq!("3", arr.array_get_item(2).unwrap().get_string_val().unwrap());
+    }
 }
