@@ -24,7 +24,10 @@ impl Plist {
             return Err(PlistError::InvalidArg);
         }
         trace!("Getting array item");
-        Ok(unsafe { unsafe_bindings::plist_array_get_item(self.plist_t, index) }.into())
+        let mut plist: Plist = unsafe { unsafe_bindings::plist_array_get_item(self.plist_t, index) }.into();
+        plist.false_drop = true;
+
+        Ok(plist)
     }
     /// Gets the index of an array item
     pub fn array_get_item_index(&self) -> Result<u32, PlistError> {
