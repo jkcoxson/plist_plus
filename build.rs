@@ -45,6 +45,7 @@ fn main() {
             .expect("Couldn't write bindings!");
     }
 
+    let mut statically = cfg!(feature = "static");
     if cfg!(feature = "vendored") {
         // Change current directory to OUT_DIR
         let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -62,7 +63,7 @@ fn main() {
             dst.join("lib").display()
         );
 
-        println!("cargo:rustc-link-lib=static=plist-2.0");
+        statically = true;
     } else {
         // Check if folder ./override exists
         let override_path = PathBuf::from("./override").join(env::var("TARGET").unwrap());
@@ -80,6 +81,7 @@ fn main() {
         println!("cargo:rustc-link-search=/usr/local/opt/libusbmuxd/lib");
         println!("cargo:rustc-link-search=/usr/local/opt/libimobiledevice-glue/lib");
     }
+    println!("cargo:rustc-link-lib={}=plist-2.0", if statically { "static" } else { "dylib" });
 }
 
 fn repo_setup(url: &str) {
